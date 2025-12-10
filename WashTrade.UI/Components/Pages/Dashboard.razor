@@ -1,0 +1,100 @@
+@page "/"
+@using WashTrade.Domain
+@using WashTrade.Domain.Entities
+@using Microsoft.EntityFrameworkCore
+@inject WashTradeDbContext DbContext
+
+<PageTitle>Wash Trade Detective Dashboard</PageTitle>
+
+<h1>Wash Trade Detective Dashboard</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                Detected Wash Trades (Alerts)
+            </div>
+            <div class="card-body">
+                @if (alerts == null)
+                {
+                    <p>Loading...</p>
+                }
+                else if (!alerts.Any())
+                {
+                    <p>No suspicious activity detected yet.</p>
+                }
+                else
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Confidence</th>
+                                <th>Detected At</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var alert in alerts)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (alert.Type == WashTradeType.CircularPattern)
+                                        {
+                                            <span class="badge bg-danger">Circular Pattern</span>
+                                        }
+                                        else if (alert.Type == WashTradeType.SelfFunding)
+                                        {
+                                            <span class="badge bg-warning text-dark">Self-Funding</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@alert.Type</span>
+                                        }
+                                    </td>
+                                    <td>@alert.ConfidenceScore.ToString("P0")</td>
+                                    <td>@alert.DetectedAt.ToLocalTime()</td>
+                                    <td>@alert.Details</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                Network Visualization (Placeholder)
+            </div>
+            <div class="card-body text-center">
+                 <!-- Placeholder for Network Graph -->
+                 <svg width="400" height="300" style="border:1px solid #ccc">
+                     <circle cx="200" cy="150" r="20" fill="red" />
+                     <text x="200" y="150" text-anchor="middle" dy=".3em" fill="white">A</text>
+                     
+                     <circle cx="100" cy="100" r="20" fill="blue" />
+                     <text x="100" y="100" text-anchor="middle" dy=".3em" fill="white">B</text>
+                     
+                     <line x1="185" y1="140" x2="115" y2="110" stroke="black" marker-end="url(#arrow)" />
+                     
+                     <text x="200" y="280">Real-time graph would render here</text>
+                 </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<WashTradeAlert>? alerts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simple polling or load on refresh
+        alerts = await DbContext.WashTradeAlerts
+            .OrderByDescending(a => a.DetectedAt)
+            .Take(20)
+            .ToListAsync();
+    }
+}
