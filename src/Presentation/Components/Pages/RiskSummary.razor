@@ -1,0 +1,72 @@
+@page "/risk-summary"
+
+<PageTitle>Risk Intelligence Summary</PageTitle>
+
+<h1>Risk Intelligence Summary</h1>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-header">High Risk Wallets</div>
+            <div class="card-body">
+                <h5 class="card-title display-4">12</h5>
+                <p class="card-text">Detected in last 24h</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Suspicious Patterns</div>
+            <div class="card-body">
+                <h5 class="card-title display-4">45</h5>
+                <p class="card-text">Wash trading candidates</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Verified Safe</div>
+            <div class="card-body">
+                <h5 class="card-title display-4">892</h5>
+                <p class="card-text">Clean history</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Recent High Risk Alerts</div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Wallet</th>
+                    <th>Risk Score</th>
+                    <th>Reason</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2023-10-27 10:42</td>
+                    <td><a href="#">addr1...x92</a></td>
+                    <td><span class="badge bg-danger">92</span></td>
+                    <td>Layering pattern detected</td>
+                    <td><button class="btn btn-sm btn-outline-primary">Investigate</button></td>
+                </tr>
+                 <tr>
+                    <td>2023-10-27 09:15</td>
+                    <td><a href="#">addr1...k88</a></td>
+                    <td><span class="badge bg-warning text-dark">78</span></td>
+                    <td>Rapid fund cycling</td>
+                    <td><button class="btn btn-sm btn-outline-primary">Investigate</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+
+}

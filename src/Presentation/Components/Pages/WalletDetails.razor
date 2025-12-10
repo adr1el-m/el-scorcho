@@ -1,0 +1,148 @@
+@page "/wallet/{Address}"
+@inject WalletAnalysisService AnalysisService
+@using WHRID.Domain.Entities
+@using WHRID.Domain.Enums
+
+<PageTitle>Wallet Analysis: @Address</PageTitle>
+
+<div class="container mt-4">
+    @if (wallet == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p>Loading analysis...</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold">Wallet Analysis</h2>
+                <span class="text-muted font-monospace">@Address</span>
+            </div>
+            <div>
+                <span class="badge rounded-pill bg-primary fs-6">@wallet.RiskProfile?.Classification</span>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Scores -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-muted">Risk Score</h5>
+                        <div class="display-4 fw-bold @GetRiskColor(wallet.RiskProfile?.RiskScore ?? 0)">
+                            @wallet.RiskProfile?.RiskScore.ToString("F0")
+                        </div>
+                        <p class="small text-muted">0 = Safe, 100 = Critical</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-muted">Activity Score</h5>
+                        <div class="display-4 fw-bold text-info">
+                            @wallet.RiskProfile?.ActivityScore.ToString("F0")
+                        </div>
+                        <p class="small text-muted">Based on transaction frequency</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-muted">Total Transactions</h5>
+                        <div class="display-4 fw-bold text-dark">
+                            @wallet.Transactions.Count
+                        </div>
+                        <p class="small text-muted">Since @wallet.FirstSeen.ToShortDateString()</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Transaction History</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tx Hash</th>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tx in wallet.Transactions.OrderByDescending(t => t.Timestamp).Take(10))
+                                {
+                                    <tr>
+                                        <td class="font-monospace text-truncate" style="max-width: 150px;">@tx.Hash</td>
+                                        <td>@tx.Timestamp.ToString("g")</td>
+                                        <td>
+                                            @if (tx.IsOutgoing)
+                                            {
+                                                <span class="badge bg-warning text-dark">OUT</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">IN</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Risk Factors</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            @if (wallet.RiskProfile?.RiskScore > 50)
+                            {
+                                <li class="list-group-item text-danger"><i class="bi bi-exclamation-triangle"></i> High Transaction Volume</li>
+                                <li class="list-group-item text-danger"><i class="bi bi-exclamation-triangle"></i> Anomalous Pattern</li>
+                            }
+                            else
+                            {
+                                <li class="list-group-item text-success"><i class="bi bi-check-circle"></i> Normal Behavior</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Address { get; set; } = "";
+
+    private Wallet? wallet;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Address))
+        {
+            wallet = await AnalysisService.AnalyzeWalletAsync(Address);
+        }
+    }
+
+    private string GetRiskColor(double score)
+    {
+        if (score < 30) return "text-success";
+        if (score < 70) return "text-warning";
+        return "text-danger";
+    }
+}

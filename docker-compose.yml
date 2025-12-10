@@ -3,15 +3,55 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: washtrade-db
+    container_name: whrid-db
     environment:
-      POSTGRES_USER: admin
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: washtrade
+      POSTGRES_DB: whrid
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  cardano-node:
+    image: ghcr.io/intersectmbo/cardano-node:10.5.3
+    container_name: cardano-node
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./node-ipc:/ipc
+      - ./node-data:/data
+      - ./config/preview:/config:ro
+    command: [
+      "run",
+      "--config", "/config/config.json",
+      "--topology", "/config/topology.json",
+      "--database-path", "/data",
+      "--socket-path", "/ipc/node.socket",
+      "--host-addr", "0.0.0.0",
+      "--port", "3001"
+    ]
+    restart: unless-stopped
+
+  oura:
+    image: ghcr.io/txpipe/oura:latest
+    platform: linux/amd64
+    container_name: whrid-oura
+    command:
+      - daemon
+      - --config
+      - /config/daemon.toml
+    environment:
+      RUST_LOG: debug
+    volumes:
+      - ./node-ipc:/ipc
+      - ./config/oura:/config
+    depends_on:
+      - cardano-node
+      - postgres
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  node-ipc:
+  node-data:

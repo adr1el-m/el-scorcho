@@ -1,0 +1,21 @@
+[source]
+type = "N2N"
+address = ["Tcp", "cardano-node:3001"]
+magic = "preview"
+
+[source.intersect]
+type = "Origin"
+
+[source.mapper]
+include_block_details = true
+include_transaction_details = true
+
+[sink]
+type = "Webhook"
+url = "http://host.docker.internal:5213/api/webhook/oura"
+
+[[filters]]
+type = "Selection"
+[filters.check]
+predicate = "variant_in"
+argument = ["Block", "Transaction"]

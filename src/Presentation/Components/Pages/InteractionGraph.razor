@@ -1,0 +1,42 @@
+@page "/interaction-graph"
+
+<PageTitle>Wallet Interaction Graph</PageTitle>
+
+<h1>Wallet Interaction Graph</h1>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">Controls</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Search Wallet</label>
+                    <input type="text" class="form-control" placeholder="addr1..." />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Depth</label>
+                    <select class="form-select">
+                        <option>1 Hop</option>
+                        <option>2 Hops</option>
+                        <option>3 Hops</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary w-100">Visualize</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="card" style="height: 600px;">
+            <div class="card-body d-flex align-items-center justify-content-center bg-light">
+                <div class="text-center text-muted">
+                    <span class="bi bi-share display-1"></span>
+                    <p class="mt-3">Force-directed graph visualization will be rendered here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    
+}

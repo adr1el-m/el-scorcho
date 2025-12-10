@@ -1,0 +1,46 @@
+@page "/analytics"
+
+<PageTitle>Analytics</PageTitle>
+
+<h1>Analytics</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Transaction Volume</div>
+            <div class="card-body">
+                <p>Chart placeholder: Daily Transaction Volume</p>
+                <!-- Implement chart here later -->
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">Token Distribution</div>
+            <div class="card-body">
+                <p>Chart placeholder: Token Portfolio Diversity</p>
+                 <!-- Implement chart here later -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">Network Activity Heatmap</div>
+            <div class="card-body">
+                <p>Heatmap placeholder: Activity by Day/Hour</p>
+                 <!-- Implement chart here later -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Load global analytics data
+        await Task.CompletedTask;
+    }
+}

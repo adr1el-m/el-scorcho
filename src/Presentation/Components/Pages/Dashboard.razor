@@ -1,0 +1,174 @@
+@page "/"
+@inject WalletAnalysisService AnalysisService
+@inject NavigationManager NavManager
+@inject WHRID.Application.Interfaces.IArgusRepository ArgusRepo
+@using WHRID.Domain.Entities
+
+<PageTitle>WHRID - Dashboard</PageTitle>
+
+<section class="parallax-hero text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold">Cardano Risk Intelligence</h1>
+        <p class="lead">Analyze wallet health, detect risks, and visualize behavior using Argus data.</p>
+    </div>
+</section>
+
+<div class="container mt-4">
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <h3 class="card-title text-center mb-4">Analyze Wallet</h3>
+                    
+                    <div class="input-group input-group-lg">
+                        <input type="text" class="form-control" placeholder="Enter Cardano Address (addr1...)" 
+                               @bind="searchAddress" @onkeyup="HandleKeyUp" />
+                        <button class="btn btn-primary" type="button" @onclick="AnalyzeWallet">
+                            <i class="bi bi-search"></i> Analyze
+                        </button>
+                    </div>
+                    
+                    @if (isLoading)
+                    {
+                        <div class="text-center mt-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Fetching blockchain data...</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Activity Feed -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-broadcast text-danger"></i> Live Blockchain Activity (Preview Network)</h5>
+                </div>
+                <div class="card-body">
+                    @if (recentTxs == null)
+                    {
+                        <p class="text-muted">Waiting for data...</p>
+                    }
+                    else if (recentTxs.Count == 0)
+                    {
+                         <div class="text-center p-4">
+                            <div class="spinner-grow text-warning" role="status"></div>
+                            <p class="mt-2 text-muted">Waiting for new blocks from Oura...</p>
+                            <small>Ensure your local node is syncing.</small>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Hash</th>
+                                        <th>Block</th>
+                                        <th>Time</th>
+                                        <th>Fee</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var tx in recentTxs)
+                                    {
+                                        <tr>
+                                            <td class="text-truncate" style="max-width: 150px;">@tx.Hash</td>
+                                            <td>@tx.BlockHeight</td>
+                                            <td>@tx.Timestamp.ToString("HH:mm:ss")</td>
+                                            <td>@tx.Fee ADA</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-check fs-1 text-success mb-3"></i>
+                    <h5>Risk Scoring</h5>
+                    <p>AI-driven risk assessment based on transaction patterns.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up fs-1 text-info mb-3"></i>
+                    <h5>Behavior Analytics</h5>
+                    <p>Classify wallets as Whales, Traders, or Bots.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-diagram-3 fs-1 text-warning mb-3"></i>
+                    <h5>Interaction Graph</h5>
+                    <p>Visualize fund flows and connections.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string searchAddress = "";
+    private bool isLoading = false;
+    private List<Transaction>? recentTxs;
+    private System.Threading.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        // Poll for updates every 3 seconds
+        _timer = new System.Threading.Timer(async _ => await LoadRecentTxs(), null, 0, 3000);
+    }
+
+    private async Task LoadRecentTxs()
+    {
+        try 
+        {
+            var txs = await ArgusRepo.GetRecentTransactionsAsync(5);
+            recentTxs = txs;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error polling txs: {ex.Message}");
+        }
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AnalyzeWallet();
+        }
+    }
+
+    private async Task AnalyzeWallet()
+    {
+        if (string.IsNullOrWhiteSpace(searchAddress)) return;
+
+        var addr = searchAddress.Trim();
+        NavManager.NavigateTo($"/wallet/{addr}");
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

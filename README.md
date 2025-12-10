@@ -1,57 +1,75 @@
-# Wash Trade Detective
+# WHRID (Wallet Health & Risk Intelligence Dashboard)
 
-A Cardano blockchain analysis tool to detect wash trading activities using Argus.
+WHRID is a **Cardano Risk Intelligence** platform that analyzes wallet health, detects anomalous behavior, and visualizes fund flows using real-time blockchain data. It combines on-chain data ingestion (via Oura) with AI-driven risk scoring.
 
-## Project Structure
+![WHRID Dashboard](docs/dashboard-preview.png)
 
-- **Argus.Indexer**: Console application responsible for ingesting blockchain data (UTXOs) via Argus and storing it in PostgreSQL.
-- **WashTrade.Analyzer**: Background worker service that analyzes the indexed data for suspicious patterns (Circular Trading, Self-Funding).
-- **WashTrade.UI**: Blazor Web App (Interactive Server) for visualizing the network and alerts.
-- **WashTrade.Domain**: Shared library containing EF Core entities and DbContext.
-- **WashTrade.Tests**: Unit test project verifying the analysis logic using an in-memory database.
+## 🚀 Features
 
-## Prerequisites
+- **Live Activity Feed**: Real-time stream of blocks and transactions from the Cardano Preview network.
+- **Wallet Analysis**: Enter any address to see:
+  - **Risk Score**: 0-100 assessment based on transaction patterns.
+  - **Classification**: Automatic tagging (Whale, Trader, Bot, Normal User).
+  - **Transaction History**: Full history pulled from a local Argus indexer.
+- **Glassmorphic UI**: Modern, dark-themed interface with parallax effects and responsive design.
+- **Oura Integration**: Custom webhook sink that persists blockchain events into a structured PostgreSQL database (`argus`).
 
-- .NET 9 SDK
-- Docker Desktop
+## 🛠 Tech Stack
 
-## Setup Instructions
+- **Frontend/Backend**: .NET 8, Blazor Server (Interactive Server Mode)
+- **Database**: PostgreSQL (Two contexts: `whrid` for app data, `argus` for blockchain index)
+- **Indexer**: [Oura](https://github.com/txpipe/oura) (Rust-based pipeline)
+- **Infrastructure**: Docker Compose (Postgres, Cardano Node, Oura)
 
-1.  **Start Database**:
-    ```bash
-    docker-compose up -d
-    ```
+## 📦 Prerequisites
 
-2.  **Apply Migrations**:
-    ```bash
-    dotnet ef database update --project WashTrade.Domain --startup-project Argus.Indexer
-    ```
+- **.NET 8 SDK**
+- **Docker Desktop**
 
-3.  **Run Tests**:
-    Verify the logic by running the unit tests:
-    ```bash
-    dotnet test
-    ```
+## 🏁 Quick Start
 
-4.  **Run Projects**:
-    You can run the projects individually or set up multiple startup projects in Visual Studio / VS Code.
+1. **Start Infrastructure**
+   ```bash
+   docker-compose up -d
+   ```
+   This spins up:
+   - `postgres` (Port 5433)
+   - `cardano-node` (Preview Network, Port 3001)
+   - `oura` (Daemon mode, syncing from node to app webhook)
 
-    - Start the UI:
-      ```bash
-      dotnet run --project WashTrade.UI
-      ```
-    - Start the Analyzer:
-      ```bash
-      dotnet run --project WashTrade.Analyzer
-      ```
-    - Start the Indexer:
-      ```bash
-      dotnet run --project Argus.Indexer
-      ```
+2. **Run Application**
+   ```bash
+   dotnet run --project src/Presentation/WHRID.Presentation.csproj
+   ```
+   The app will be available at `http://localhost:5213`.
 
-## Features
+3. **Explore**
+   - Open `http://localhost:5213`.
+   - Watch the live feed populate as Oura syncs.
+   - Analyze a wallet (e.g., `addr1...`) to see risk scores.
 
-- **Data Ingestion**: Scaffolding for Argus integration.
-- **Circular Trade Detection**: Detects A -> B -> A patterns within 24 hours.
-- **Self-Funding Detection**: Detects Wallet A funding Wallet B (ADA) immediately before B buys an NFT from A.
-- **Dashboard**: Real-time view of wash trade alerts with visual badges.
+## 🏗 Architecture
+
+- **Oura Webhook**: The app exposes `POST /api/webhook/oura`. Oura streams `Block` and `Transaction` events here.
+- **Argus Context**: The app ingests these events into the `argus` database schema (`block`, `tx`, `tx_out`).
+- **Analysis Engine**: When a wallet is analyzed, the service:
+  1. Fetches raw txs from `argus`.
+  2. Aggregates stats (volume, frequency).
+  3. Calculates a risk score and classification.
+  4. Caches the result in the `whrid` database.
+
+## 🧪 Testing
+
+Run unit tests:
+```bash
+dotnet test
+```
+
+## 📝 Configuration
+
+- **Database Connection**: `src/Presentation/appsettings.json`
+- **Oura Pipeline**: `config/oura/daemon.toml` (Configured to filter Block/Transaction events and send to webhook)
+
+## 📄 License
+
+MIT
